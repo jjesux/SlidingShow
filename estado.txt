@@ -1,0 +1,30 @@
+
+Esta version parece trabajar bien con los file de jpg, png y jpeg. Lo unico es 
+que necesita un file con nombre resizedPic.jpg y que el tamanho sea mas grande 
+que zero bytes.  
+Sin este file el programa se crashea cuando la lista de imagenes llega al index
+zero y a su maximo valor.
+
+POSIBLE ERROR
+Creo que se detiene porque no se crea o no existe el file resize.png, que
+se necesita para que el loop funcione
+
+NOTE:  Se introdujeron algunos errores cuando la aplicacion trata de abrir 
+directorio nuevo. Si esta en paused mode no habre la ventana para selecionar 
+el directorio. 
+CHECAR EL COMPORTAMIENTO ERRONEO DE ESTE BUG.
+Creo que no trabaja cuando esta en paused mode, ni siquiera aparece la window
+para seleccionar el directorio nuevo.
+
+Seria bueno ponerle un label para que indique el indice del file que esta 
+mostrando.
+
+Hacer un dialog para hacer notificaciones al user hacerca de errores.
+
+Cunado se tratat de selecionar un directorio pero se cancela el proceso la app se 
+queda en paused mode, no cambia las imagenes. y aprentemente no sale de este mode.
+el otro error es que cambia a playing el boton idicating 
+these modes.
+
+En la showimagen function hay un bloque de try-except que esta cancelado. Ver si 
+no es necesario para el buen funcionamiento de la app. Si no sirve hay que quitarlo.
