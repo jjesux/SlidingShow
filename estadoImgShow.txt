@@ -1,0 +1,20 @@
+
+Esta version parece trabajar bien con los file de jpg, png y jpeg.
+
+En la showimagen function hay un bloque de try-except que detecta cuando hay 
+algun error abriendo el file-imagen. Mostrar algun mensage al user y ver como
+solucionar el problema.
+
+
+Update on 6/12/2021 - 10:39 am.
+In this update, change directory can be done while the program is in play mode or 
+when it is in paused mode.
+
+Also the backward and forward and play text and color were synchronized.
+
+
+Update on 6/11/2021 - 4:30 pm.
+In this last update, a Label widget is added it to display the index or number
+of the image being shown. This label is next to the label that shows the file 
+path of the image being displayed.
+

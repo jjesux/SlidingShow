@@ -11,9 +11,12 @@
  undone this action the file name has to be rename with the old file name.
  The delay time can also be changed, increased or decreased.
  The directory where the images are can be changed or selected at any time, but 
- the app has to be on playing mode. Note: On paused mode it does not work.
+ the app has to be on playing mode. 
+ Note: On paused mode, selecting new directory does not work.
  The application can be set in paused mode and change the images, forward or 
  backward, manually.
+
+ 6/12/2021 10:39 am.
 """
 
 
@@ -21,6 +24,7 @@
 # Importing libraries to complete this image show project.
 import glob
 import os
+from tkinter import font
 # Libs to manage images and switch images
 from PIL import Image, ImageTk, ImageDraw, ImageFont
 # Libs to manages GUI widges
@@ -93,6 +97,8 @@ class Window(Frame):
 		# Variable to hold the path image and file name. This is mainly for 
 		# debugging.
 		self.txtFileInfo = tk.StringVar()
+		# Variable to hold the number-index of the image been shown.
+		self.txtFileIndx = tk.StringVar()
 		# Variable used in the Spinbox to hold a value to increase or decrease 
 		# the delay time.
 		self.delayChangeBy = tk.IntVar()
@@ -147,7 +153,7 @@ class Window(Frame):
 		self.backBtn["text"] = "[<B]"
 		self.backBtn["width"] = 5
 		self.backBtn["command"] = self.backPicture
-		self.backBtn["style"] = "blue.TButton"
+		self.backBtn["style"] = "green.TButton"
 
 		# Button to set the app on-paused mode. Code to configure button
 		# settings.	
@@ -173,10 +179,17 @@ class Window(Frame):
 		self.quitBtn = Button(self, text="[X]", style="red.TButton", width=5, command=self.doExit)#command=self.master.destroy)
 		self.quitBtn.grid(row=7, column=0, sticky=tk.NW)
 
-		# Button to display a label with information about the image being displayed.
-		# Code to configure button settings.	
+		# Label widget to display a label with information about the image being
+		# displayed. This shows file path data.
+		# Code to configure Label settings.	
 		self.labelInfo = Label(self, textvariable=self.txtFileInfo, font=("TkDefaultFont", 9), wraplength=600)
 		self.labelInfo.grid(row=8, column=0, sticky=tk.NW, columnspan=5)
+
+		# Label widget to display a label with the index-number of the imagen
+		# that it is being displayed.
+		# Code to configure Label settings.	
+		self.labelIndxInfo = Label(self, textvariable=self.txtFileIndx, font=("TkDefaultFont", 8), wraplength=30)
+		self.labelIndxInfo.grid(row=8, column=1, sticky=tk.NE, columnspan=1)
 
 		# If list of images is not empty, then display images on the images list.
 		if len(self.imgNames) >= 1:
@@ -228,7 +241,7 @@ class Window(Frame):
 			self.index -= 1
 			# Checking the beginning of the list. Index is set to the length of 
 			# the list minus one.
-			if self.index <= 0:
+			if self.index < 0:
 				self.index = len(self.imgNames) - 1
 
 	#End of setIndex() class function.
@@ -241,19 +254,21 @@ class Window(Frame):
 	"""
 	def showImagen(self):
 		#print('Calling:  showImagen()')
+
 		# Setting the index value.
 		if len(self.imgNames) >= 1:
 			self.setIndex()
 
 			# Catching any error while getting a file object.
-			#try:      ########################################################
-
-			self.img = Image.open(self.imgNames[self.index])
-
-			#except IOError:###################################################
-			#print("Error Error : " + str(self.index))
-			#	exit(1)
-
+			try:
+				self.img = Image.open(self.imgNames[self.index])
+			except IOError:
+				print("Error Open File At Index: " + str(self.index))
+				print('It is like image file has been deleted or corrupted')
+				#Talvez aqui crear una ventana para avisar al user del problema
+				#y ver como solucionar el problema. POr ejemplo reajustar la 
+				#lista de indices y reampezar el sliding show con la nueva lista 
+				# de indeces.
 
 			# Setting the image size to be displayed. This is done on a temporary
 			# image file. Original image is not affected by this code.
@@ -272,8 +287,12 @@ class Window(Frame):
 			self.labelPicture.image = self.photo
 			# Setting position of the label containing the image. 
 			self.labelPicture.grid(row=0, column=1, sticky=(tk.N + tk.S), rowspan=8)
-			# Setting the displayed imagen file information label.
+			# Setting the displayed imagen file path information label.
 			self.txtFileInfo.set("FN: " + self.imgNames[self.index])
+			# Setting the displayed image index-number information label.
+			self.txtFileIndx.set(self.index)
+
+
 			# Swapping image between temporary image holder and the next image holder.
 			if self.labelPicture_old is not None:
 				self.labelPicture_old.destroy()
@@ -313,14 +332,16 @@ class Window(Frame):
 	"""
 	def playShow(self):
 		#print('Calling:  playShow()')
+
 		# Setting the app in play mode.
 		if self.playingStatus == True:
+			#Setting the app mode to pause
 			self.playingStatus = False
 			self.playBtn["text"] = "[<>]"
 			self.playBtn["style"] = "red.TButton"
 		# Setting the app in pause mode.
 		else:
-			#print("Movement before:" + str(self.nextBackMode))
+			#Setting the app mode to move images
 			self.playingStatus = True
 			
 			if self.nextBackMode:
@@ -329,13 +350,12 @@ class Window(Frame):
 				self.playBtn["text"] = "<<<<"
 
 			self.playBtn["style"] = "blue.TButton"
-			#print("Movement after:" + str(self.nextBackMode))
 
 			self.showImagen()
 
 	#End of playShow() class function.
 
-
+	
 
 
 	"""
@@ -349,13 +369,22 @@ class Window(Frame):
 	""" 
 	def setDirectorio(self):
 		
-		#Selecting the directory containing the images can be done only when the
-		#app is in playing mode (no in paused mode.)
+		#if-statement to pause the sliding of images if the mode movement is ON.
 		if self.playingStatus == True:
-			#Calling this function to set the app in paused mode.
+			#pausing the sliding show, if it is in play mode.
 			self.playShow()
-			#Showing the file chooser GUI interface.
-			dirName = tk.filedialog.askdirectory()
+		else:
+			pass
+
+		#Showing the file chooser GUI interface.
+		dirName = tk.filedialog.askdirectory()
+
+		#if-statement: User canceled the directory selection.
+		if not dirName:
+			#Calling this function to set the app in play mode. Directory 
+			#selection was canceled.
+			self.playShow()
+		else:
 			#Building the absolute image file paths.
 			self.strPath = dirName + '/'
 			#Getting only file with estension jpg, png and jpeg.
@@ -367,10 +396,14 @@ class Window(Frame):
 			for i in range(len(self.imgNames)):
 				self.imgNames[i] = self.imgNames[i].replace('\\', '/')
 
+			#Setting the index variable value to its initial value, after a new 
+			#directory has been selected.
+			self.index = 0
+
 			# Calling playShow() function to display the image in the new directory.
 			self.playShow()
 
-	#End of setDirectorio(self) class function.
+		#End of setDirectorio(self) function.
 
 
 
@@ -383,8 +416,15 @@ class Window(Frame):
 	def backPicture(self):
 		# if statement to set the application movement backward.
 		if len(self.imgNames) >= 1:
+			#Setting sliding direction to backward movement
 			self.nextBackMode = False
-			self.playBtn["text"] = "<<<<"
+			#Changing the playBtn text only if app mode is not in pause mode
+			if self.playingStatus:
+				self.playBtn["text"] = "<<<<"
+			self.backBtn["style"] = "green.TButton"
+			self.forWardBtn["style"] = "blue.TButton"
+			#if app in pause mode, then show back image. 
+			#Do not start sliding image show
 			if self.playingStatus == False:
 				self.showImagen()
 		#  else statement to show debugging info.
@@ -402,8 +442,15 @@ class Window(Frame):
 	"""
 	def nextPicture(self):
 		if len(self.imgNames) >= 1:
+			#Setting sliding direction to forward movement
 			self.nextBackMode = True
-			self.playBtn["text"] = ">>>>"
+			#Changing the playBtn text only if app mode is not in pause mode
+			if self.playingStatus:
+				self.playBtn["text"] = ">>>>"
+			self.forWardBtn["style"] = "green.TButton"
+			self.backBtn["style"] = "blue.TButton"
+			#if app in pause mode, then show next image. 
+			#Do not start sliding image show
 			if self.playingStatus == False:
 				self.showImagen()
 		#  else statement to show debugging info.
